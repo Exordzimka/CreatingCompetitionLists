@@ -1,0 +1,1 @@
+dotnet ef dbcontext scaffold "Host=localhost;Database=competition_list;Username=postgres;Password=123" Npgsql.EntityFrameworkCore.PostgreSQL

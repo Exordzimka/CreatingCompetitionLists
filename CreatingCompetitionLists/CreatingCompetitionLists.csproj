@@ -10,16 +10,43 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Google.Apis.Auth" Version="1.51.0" />
+        <PackageReference Include="Google.Apis.Core" Version="1.51.0" />
+        <PackageReference Include="Google.Apis.Drive.v3" Version="1.51.0.2265" />
         <PackageReference Include="Google.Apis.Sheets.v4" Version="1.49.0.2168" />
+        <PackageReference Include="Google.GData.Client" Version="2.2.0" />
+        <PackageReference Include="Google.GData.Extensions" Version="2.2.0" />
+        <PackageReference Include="Google.GData.Spreadsheets" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.15" />
         <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.5">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.5" />
     </ItemGroup>
 
     <ItemGroup>
         <!-- Don't publish the SPA source files, but do show them in the project files list -->
         <Content Remove="$(SpaRoot)**" />
+        <Content Include="ClientApp\public\logo.png" />
+        <Content Include="ClientApp\public\mupoch.jpg" />
+        <Content Include="ClientApp\src\components\CutomDialog.js" />
+        <Content Include="ClientApp\src\components\Database.js" />
+        <Content Include="ClientApp\src\components\ModalWindow.js" />
+        <Content Include="ClientApp\src\components\SpreadsheetPage.js" />
         <None Remove="$(SpaRoot)**" />
         <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+        <None Include="Data\GoogleCredentials.cs" />
+        <None Include="Services\CreateSpreadSheetsService.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Tests" />
+      <Folder Include="token.json" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

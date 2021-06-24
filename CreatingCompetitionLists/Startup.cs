@@ -1,3 +1,4 @@
+using CreatingCompetitionLists.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -46,6 +47,14 @@ namespace CreatingCompetitionLists
                     options.ClientId = googleAuthSection["ClientId"];
                     options.ClientSecret = googleAuthSection["ClientSecret"];
                 });
+
+            services.AddOptions();
+            services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                );
+
+            services.Configure<GoogleCredentials>(Configuration.GetSection("Authentication:Google"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

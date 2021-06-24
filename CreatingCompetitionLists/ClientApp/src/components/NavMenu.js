@@ -38,7 +38,7 @@ export class NavMenu extends Component {
     formGreetings(authenticated) {
         let greetingsValue = <p class="text-danger font-weight-bold">Вы не аутентифицированы</p>;
         if (authenticated)
-            greetingsValue = <p class="text-success font-weight-bold">{this.state.authenticated}</p>;
+            greetingsValue = <div><span className={"text-dark"}>Учетная запись: </span><span className="text-dark font-italic">{this.state.authenticated}</span></div>;
         return <NavItem>
             <NavLink tag={NavItem}>{greetingsValue}</NavLink>
         </NavItem>;
@@ -46,11 +46,11 @@ export class NavMenu extends Component {
 
     formSignInOrSignOut(authenticated) {
         let link = "authentication/google-login";
-        let linkText = "Login";
+        let linkText = "Войти";
         if (authenticated)
         {
             link = "authentication/google-logout";
-            linkText = "Logout";
+            linkText = "Выйти";
         }
         return <NavItem>
             <NavLink className="text-primary" href={link}>{linkText}</NavLink>
@@ -65,19 +65,13 @@ export class NavMenu extends Component {
             <header>
                 <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow mb-3" light>
                     <Container>
-                        <NavbarBrand tag={Link} to="/">CreatingCompetitionLists</NavbarBrand>
+                        <NavbarBrand style={{backgroundImage: 'url(/logo.png)'}} tag={Link} to="/">Создание автоматизированных конкурсных списков</NavbarBrand>
                         <NavbarToggler onClick={this.toggleNavbar} className="mr-2"/>
                         <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed}
                                   navbar>
                             <ul className="navbar-nav flex-grow">
                                 <NavItem>
-                                    <NavLink tag={Link} className="text-dark" data-toggel to="/">Home</NavLink>
-                                </NavItem>
-                                <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/counter">Counter</NavLink>
-                                </NavItem>
-                                <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/fetch-data">Fetch data</NavLink>
+                                    <NavLink tag={Link} className={"text-primary"} to={"/database"}>База Данных</NavLink>
                                 </NavItem>
                                 {greetings}
                                 {authentication}
