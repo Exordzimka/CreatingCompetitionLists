@@ -114,33 +114,41 @@ namespace CreatingCompetitionLists.Services
 
         public string HighlightOriginals(string spreadsheetId, ClaimsPrincipal user)
         {
-            if (!canUpdate)
-                return "Wait";
-            canUpdate = false;
-            var spreadsheet = Service(user).Spreadsheets.Get(spreadsheetId).Execute();
-            var batchFormulaGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
-            batchFormulaGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
-                .DateTimeRenderOptionEnum.FORMATTEDSTRING;
-            batchFormulaGet.ValueRenderOption =
-                SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.FORMULA;
-            batchFormulaGet.MajorDimension =
-                SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
-            var batchValueGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
-            batchValueGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
-                .DateTimeRenderOptionEnum.FORMATTEDSTRING;
-            batchValueGet.ValueRenderOption =
-                SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
-            batchValueGet.MajorDimension =
-                SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
-            var placesSheet = spreadsheet.Sheets.FirstOrDefault(x =>
-                x.Properties.Title.Equals("число мест", StringComparison.OrdinalIgnoreCase));
-            foreach (var sheet in spreadsheet.Sheets)
+            try
             {
-                updateSheet(sheet, batchFormulaGet, batchValueGet, spreadsheet, user);
-            }
+                if (!canUpdate)
+                    return "Wait";
+                canUpdate = false;
+                var spreadsheet = Service(user).Spreadsheets.Get(spreadsheetId).Execute();
+                var batchFormulaGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
+                batchFormulaGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
+                    .DateTimeRenderOptionEnum.FORMATTEDSTRING;
+                batchFormulaGet.ValueRenderOption =
+                    SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.FORMULA;
+                batchFormulaGet.MajorDimension =
+                    SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
+                var batchValueGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
+                batchValueGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
+                    .DateTimeRenderOptionEnum.FORMATTEDSTRING;
+                batchValueGet.ValueRenderOption =
+                    SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
+                batchValueGet.MajorDimension =
+                    SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
+                var placesSheet = spreadsheet.Sheets.FirstOrDefault(x =>
+                    x.Properties.Title.Equals("число мест", StringComparison.OrdinalIgnoreCase));
+                foreach (var sheet in spreadsheet.Sheets)
+                {
+                    updateSheet(sheet, batchFormulaGet, batchValueGet, spreadsheet, user);
+                }
 
-            canUpdate = true;
-            return "OK";
+                canUpdate = true;
+                return "OK";
+            }
+            finally
+            {
+                canUpdate = true;
+            }
+            
         }
 
         private async void updateSheet(Sheet sheet, SpreadsheetsResource.ValuesResource.BatchGetRequest batchFormulaGet,
