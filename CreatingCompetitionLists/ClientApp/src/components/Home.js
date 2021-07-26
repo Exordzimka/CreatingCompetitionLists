@@ -389,15 +389,24 @@ export class Home extends Component {
     
     async updateSpreadsheet(spreadsheetId){
         let responseStatus;
+        let responseText;
         let url = "https://localhost:5001/spreadsheets/highlight-originals?spreadsheetId="+spreadsheetId;
         await fetch(url,{
             method:'POST'})
             .then(
-                function(response) {
+                await function(response) {
                     responseStatus = response.status;
+                    responseText = response.text().then(function (text) {
+                        return text;
+                    });
                 });
-        if(responseStatus === 200)
-            alert("Таблица успешно обновлена");
+        await responseText.then((text) => responseText = text);
+        if(responseStatus === 200){
+            if(responseText === "Wait")
+                alert("Обновляется другая таблица, пожалуйста подождите!");   
+            else
+                alert("Таблица успешно обновлена");
+        }
         else
             alert("Таблица не обновилась!");
     }

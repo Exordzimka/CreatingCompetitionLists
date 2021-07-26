@@ -38,9 +38,9 @@ namespace CreatingCompetitionLists.Controllers
         }
 
         [Route("highlight-originals")]
-        public void HighlightOriginals([FromQuery]string spreadsheetId)
+        public string HighlightOriginals([FromQuery]string spreadsheetId)
         {
-            _updateSpreadsheetService.HighlightOriginals(spreadsheetId, User);
+            return _updateSpreadsheetService.HighlightOriginals(spreadsheetId, User);
         }
     }
 }

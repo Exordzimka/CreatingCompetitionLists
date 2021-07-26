@@ -21,7 +21,7 @@ namespace CreatingCompetitionLists.Services
         private UserCredential _userCredential;
         private readonly string[] _scopes = {SheetsService.Scope.Drive, SheetsService.Scope.DriveFile};
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
+        private static bool canUpdate = true;
 
         int startRow = 17;
         int startCountColumns = 12;
@@ -112,8 +112,11 @@ namespace CreatingCompetitionLists.Services
         string sumEgeColumn = "F";
 
 
-        public async void HighlightOriginals(string spreadsheetId, ClaimsPrincipal user)
+        public string HighlightOriginals(string spreadsheetId, ClaimsPrincipal user)
         {
+            if (!canUpdate)
+                return "Wait";
+            canUpdate = false;
             var spreadsheet = Service(user).Spreadsheets.Get(spreadsheetId).Execute();
             var batchFormulaGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
             batchFormulaGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
@@ -133,18 +136,30 @@ namespace CreatingCompetitionLists.Services
                 x.Properties.Title.Equals("число мест", StringComparison.OrdinalIgnoreCase));
             foreach (var sheet in spreadsheet.Sheets)
             {
-                await updateSheet(sheet, batchFormulaGet, batchValueGet, spreadsheet, user);
+                updateSheet(sheet, batchFormulaGet, batchValueGet, spreadsheet, user);
             }
+
+            canUpdate = true;
+            return "OK";
         }
 
-        private async Task updateSheet(Sheet sheet, SpreadsheetsResource.ValuesResource.BatchGetRequest batchFormulaGet,
+        private async void updateSheet(Sheet sheet, SpreadsheetsResource.ValuesResource.BatchGetRequest batchFormulaGet,
             SpreadsheetsResource.ValuesResource.BatchGetRequest batchValueGet, Spreadsheet spreadsheet,
             ClaimsPrincipal user)
         {
             if (sheet.Properties.Title.Equals("База", StringComparison.OrdinalIgnoreCase) ||
                 sheet.Properties.Title.Equals("Число мест", StringComparison.OrdinalIgnoreCase)) return;
             batchFormulaGet.Ranges = new Repeatable<string>(new[] {sheet.Properties.Title + "!A16:Z16"});
-            var headValues = batchFormulaGet.Execute().ValueRanges[0].Values;
+            IList<IList<object>> headValues;
+            try
+            {
+                headValues = batchFormulaGet.Execute().ValueRanges[0].Values;   
+            }
+            catch (Exception e)
+            {
+                headValues = new List<IList<object>>();
+            }
+
             var countOfDirection = getCountDirections(headValues[0]);
             batchFormulaGet.Ranges = new Repeatable<string>(new[]
                 {sheet.Properties.Title + $"!A17:{GetLetterByNumber(startCountColumns + countOfDirection)}"});
