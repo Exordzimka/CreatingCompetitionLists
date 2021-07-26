@@ -11,9 +11,9 @@ namespace CreatingCompetitionLists.Controllers
         private readonly DriveSearchService _driveSearchService = new DriveSearchService();
 
         [Route("search")]
-        public SearchResponse SearchFiles([FromQuery(Name = "page-token")] string pageToken)
+        public SearchResponse SearchFiles([FromQuery(Name = "previous")] bool previous, [FromQuery(Name = "next")] bool next)
         {
-            return _driveSearchService.GetFilesPage(User, pageToken);
+            return _driveSearchService.GetFilesPage(User, next, previous);
         }
     }
 }

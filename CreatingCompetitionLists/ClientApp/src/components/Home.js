@@ -11,6 +11,7 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import MuiDialogContent from "@material-ui/core/DialogContent";
 import MuiDialogActions from "@material-ui/core/DialogActions";
+import {PanoramaWideAngle} from "@material-ui/icons";
 
 const styles = (theme) => ({
     root: {
@@ -65,12 +66,21 @@ export class Home extends Component {
             dropdownOpen: false,
             checkBoxes: null,
             editVisible: false,
-            chosenTable: null
+            chosenTable: null,
+            previousButtonDisable: false,
+            nextButtonDisable: false
         };
         console.log(this.state.searchResponse);
         Modal.setAppElement(document.getElementById('main'));
     }
     
+    componentDidMount() {
+        this.setState({
+            previousButtonDisable: this.state.searchResponse.previousPageToken==null,
+            nextButtonDisable: this.state.searchResponse.nextPageToken==null,
+        })
+    }
+
     updateDialog(){
         return (
             <div>
@@ -157,17 +167,23 @@ export class Home extends Component {
     }
 
     nextButtonClick() {
+        let response = this.getFiles(true, false);
         this.setState({
-            searchResult: this.getFiles(this.state.searchResponse.nextPageToken)
+            searchResponse: response,
+            nextButtonDisable: response.nextPageToken==null,
+            previousButtonDisable: response.previousPageToken==null,
         });
-        this.renderTables(this.state.searchResponse);
+        console.log(this.state.searchResponse);
     }
 
     previousButtonClick() {
+        let response = this.getFiles(false, true);
+        console.log(this.state.searchResponse);
         this.setState({
-            searchResult: this.getFiles(this.state.searchResponse.previousPageToken)
+            searchResponse: response,
+            nextButtonDisable: response.nextPageToken==null,
+            previousButtonDisable: response.previousPageToken==null,
         });
-        this.render();
     }
     
     getOptions(){
@@ -318,11 +334,13 @@ export class Home extends Component {
                 {/*</Modal>*/}
                 <div className={"btn-group"}>
                     <Button className={"btn btn-primary"}
+                            disabled={this.state.previousButtonDisable}
                             onClick={() => this.previousButtonClick()}
                             style={{marginBottom:"25px"}}>
                         Предыдущая страница
                     </Button>
                     <Button className={"btn btn-primary"}
+                            disabled={this.state.nextButtonDisable}
                             onClick={() => this.nextButtonClick()}
                             style={{marginLeft: "232%", marginBottom:"25px"}}>
                         Следующая страница
@@ -384,13 +402,21 @@ export class Home extends Component {
             alert("Таблица не обновилась!");
     }
     
-    getFiles(tokenPage) {
+    getFiles(next, previous) {
+        console.log("GET");
         if (this.isAuthenticated()) {
             let xhr = new XMLHttpRequest();
-            if (tokenPage == null)
-                xhr.open('GET', "https://localhost:5001/drive/search", false);
-            else
-                xhr.open('GET', "https://localhost:5001/drive/search?token-page=" + tokenPage, false);
+            let url;
+            if(next){
+                url = "https://localhost:5001/drive/search?next=true";
+            }
+            else if(previous){
+                url = "https://localhost:5001/drive/search?previous=true";
+            }
+            else {
+                url = "https://localhost:5001/drive/search";
+            }
+            xhr.open('GET', url, false);
             xhr.send();
             return JSON.parse(xhr.responseText);
         }

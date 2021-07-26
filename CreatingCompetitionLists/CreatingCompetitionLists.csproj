@@ -34,6 +34,7 @@
         <Content Remove="$(SpaRoot)**" />
         <Content Include="ClientApp\public\logo.png" />
         <Content Include="ClientApp\public\mupoch.jpg" />
+        <Content Include="ClientApp\src\components\AuthForDatabase.js" />
         <Content Include="ClientApp\src\components\CutomDialog.js" />
         <Content Include="ClientApp\src\components\Database.js" />
         <Content Include="ClientApp\src\components\ModalWindow.js" />
