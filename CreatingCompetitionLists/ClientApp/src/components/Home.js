@@ -27,13 +27,13 @@ const styles = (theme) => ({
 });
 
 const DialogTitle = withStyles(styles)((props) => {
-    const { children, classes, onClose, ...other } = props;
+    const {children, classes, onClose, ...other} = props;
     return (
         <MuiDialogTitle disableTypography className={classes.root} {...other}>
             <Typography variant="h6">{children}</Typography>
             {onClose ? (
                 <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-                    <CloseIcon />
+                    <CloseIcon/>
                 </IconButton>
             ) : null}
         </MuiDialogTitle>
@@ -57,8 +57,9 @@ export class Home extends Component {
     static displayName = Home.name;
     
     constructor(props) {
-        super(props);        
+        super(props);
         this.getFiles = this.getFiles.bind(this);
+        this.reduceDirections = this.reduceDirections.bind(this);
         this.state = {
             searchResponse: this.getFiles(null),
             createVisible: false,
@@ -73,18 +74,19 @@ export class Home extends Component {
         console.log(this.state.searchResponse);
         Modal.setAppElement(document.getElementById('main'));
     }
-    
+
     componentDidMount() {
         this.setState({
-            previousButtonDisable: this.state.searchResponse.previousPageToken==null,
-            nextButtonDisable: this.state.searchResponse.nextPageToken==null,
+            previousButtonDisable: this.state.searchResponse?.previousPageToken == null,
+            nextButtonDisable: this.state.searchResponse?.nextPageToken == null,
         })
     }
 
-    updateDialog(){
+    updateDialog() {
         return (
             <div>
-                <Dialog onClose={() => this.hideEdit()} aria-labelledby="customized-dialog-title" open={this.state.editVisible}>
+                <Dialog onClose={() => this.hideEdit()} aria-labelledby="customized-dialog-title"
+                        open={this.state.editVisible}>
                     <DialogTitle id="customized-dialog-title" onClose={() => this.hideEdit()}>
                         {this.renderTableName()}
                     </DialogTitle>
@@ -95,8 +97,12 @@ export class Home extends Component {
                         </Typography>
                     </DialogContent>
                     <DialogActions className={"justify-content-center"}>
-                        <Button autoFocus onClick={() => this.updateSpreadsheet(this.state.chosenTable.id)} color="primary">
+                        <Button autoFocus onClick={() => this.updateSpreadsheet(this.state.chosenTable.id)}
+                                color="primary">
                             Обновить
+                        </Button>
+                        <Button onClick={() => this.reduceDirections(this.state.chosenTable.id)} color="primary">
+                            Сократить название направлений
                         </Button>
                     </DialogActions>
                 </Dialog>
@@ -120,19 +126,18 @@ export class Home extends Component {
         });
     }
 
-    
-    
-    showEdit(file){
+
+    showEdit(file) {
         this.setState({
             editVisible: true,
-            chosenTable: file 
+            chosenTable: file
         });
     }
-    
-    hideEdit(){
+
+    hideEdit() {
         this.setState({
             editVisible: false
-        });   
+        });
     }
 
     renderTables(searchResponse) {
@@ -141,12 +146,14 @@ export class Home extends Component {
                 <tbody id={"tbody"}>
                 {searchResponse.files.map(file =>
                     <tr align={"center"}>
-                        <Button style={{width:"100%"}} className={"btn btn-light"} onClick={() => this.showEdit(file)}>{file.name}</Button>
+                        <Button style={{width: "100%"}} className={"btn btn-light"}
+                                onClick={() => this.showEdit(file)}>{file.name}</Button>
                     </tr>
                 )}
                 </tbody>
             )
     }
+
     renderPreviousButton() {
         return (
             <Button className={"btn btn-primary"}
@@ -156,6 +163,7 @@ export class Home extends Component {
             </Button>
         )
     }
+
     renderNextButton() {
         return (
             <Button className={"btn btn-primary"}
@@ -170,8 +178,8 @@ export class Home extends Component {
         let response = this.getFiles(true, false);
         this.setState({
             searchResponse: response,
-            nextButtonDisable: response.nextPageToken==null,
-            previousButtonDisable: response.previousPageToken==null,
+            nextButtonDisable: response.nextPageToken == null,
+            previousButtonDisable: response.previousPageToken == null,
         });
         console.log(this.state.searchResponse);
     }
@@ -181,58 +189,62 @@ export class Home extends Component {
         console.log(this.state.searchResponse);
         this.setState({
             searchResponse: response,
-            nextButtonDisable: response.nextPageToken==null,
-            previousButtonDisable: response.previousPageToken==null,
+            nextButtonDisable: response.nextPageToken == null,
+            previousButtonDisable: response.previousPageToken == null,
         });
     }
-    
-    getOptions(){
-        if(this.state.dateForCreating==null) return;
+
+    getOptions() {
+        if (this.state.dateForCreating == null) return;
         return this.state.dateForCreating.faculties.map(faculty =>
             <option value={faculty.id}>
                 {faculty.title}
             </option>
         );
     }
-    
-    getCheckBoxes(dataForCreating, selectedFaculty){
-        if(dataForCreating==null) return;
+
+    getCheckBoxes(dataForCreating, selectedFaculty) {
+        if (dataForCreating == null) return;
         this.setState({
             checkBoxes: null
         });
         let faculty;
-        for(let i=0;i<dataForCreating.faculties.length;i++){
+        for (let i = 0; i < dataForCreating.faculties.length; i++) {
             let currentFaculty = dataForCreating.faculties[i];
-            if(currentFaculty.id == selectedFaculty){
+            if (currentFaculty.id == selectedFaculty) {
                 faculty = currentFaculty;
             }
         }
-        if(faculty.directions!=null && faculty.directions.length>0){
+        if (faculty.directions != null && faculty.directions.length > 0) {
             this.setState({
                 checkBoxes: faculty.directions.map(direction =>
                     <Checkbox value={direction.id} name={"directions"} label={direction.title}/>)
             });
         }
     }
-    
-    renderTableName(){
-        if(this.state.chosenTable == null) return;
-        return (<div><h2>Обновление конкурсного списка </h2><a href={this.state.chosenTable.webViewLink} target="_blank"><h2 id="editHeading" style={{display: "block"}}>{this.state.chosenTable.name}</h2></a></div>);
+
+    renderTableName() {
+        if (this.state.chosenTable == null) return;
+        return (
+            <div><h2>Обновление конкурсного списка </h2><a href={this.state.chosenTable.webViewLink} target="_blank"><h2
+                id="editHeading" style={{display: "block"}}>{this.state.chosenTable.name}</h2></a></div>);
     }
-    
+
     render() {
         let content = this.renderTables(this.state.searchResponse);
         let options = this.getOptions();
-        
+
         return (
             <div id={"main"}>
-                <Button className={"btn btn-primary"} onClick={() => this.showCreate()} style={{marginBottom: "5px"}}>Создать таблицу</Button>
+                <Button className={"btn btn-primary"} onClick={() => this.showCreate()} style={{marginBottom: "5px"}}>Создать
+                    таблицу</Button>
                 <Modal width={"50px"} isOpen={this.state.createVisible} aria={{
                     labelledby: "dialogheader",
                     describedby: "full_description"
                 }}>
                     <div style={{backgroundImage: 'url(/mupoch.jpg)'}}>
-                        <h1 id="heading" style={{display: "block"}}>Создание автоматизированных конкурсных списков абитуриентов</h1>
+                        <h1 id="heading" style={{display: "block"}}>Создание автоматизированных конкурсных списков
+                            абитуриентов</h1>
                         <Button className={"btn btn-danger"} onClick={() => this.hideCreate()} style={{
                             display: "block",
                             position: "absolute",
@@ -245,14 +257,16 @@ export class Home extends Component {
                                placeholder={"Название таблицы"}/>
                         <div style={{float: "left"}}>
                             <h3>Факультет/Институт</h3>
-                            <select id={"select"} onChange={() => this.getCheckBoxes(this.state.dateForCreating, document.getElementById("select").value)}>
+                            <select id={"select"}
+                                    onChange={() => this.getCheckBoxes(this.state.dateForCreating, document.getElementById("select").value)}>
                                 {options}
                             </select>
                             <h3>Направления</h3>
                             <div id={"checkBoxes"}>
                                 {this.state.checkBoxes}
                             </div>
-                            <Button className={"btn btn-primary"} onClick={() => this.createSpreadsheets()}>Создать</Button>
+                            <Button className={"btn btn-primary"}
+                                    onClick={() => this.createSpreadsheets()}>Создать</Button>
                         </div>
                         <div style={{float: "right"}}>
                             <h3>Количество этапов приема</h3>
@@ -313,36 +327,17 @@ export class Home extends Component {
                     {content}
                 </Table>
                 {this.updateDialog()}
-                {/*<Modal isOpen={this.state.editVisible} aria={{*/}
-                {/*    labelledby: "dialogheader",*/}
-                {/*    describedby: "full_description"*/}
-                {/*}}>*/}
-                {/*    <div>*/}
-                {/*        {this.renderTableName()}*/}
-                {/*        <Button className={"btn btn-danger"} onClick={() => this.hideEdit()} style={{*/}
-                {/*            display: "block",*/}
-                {/*            position: "absolute",*/}
-                {/*            top: "10px",*/}
-                {/*            right: "10px"*/}
-                {/*        }}>Закрыть</Button>*/}
-                {/*    </div>*/}
-                {/*    <div>*/}
-                {/*        <Button className={"btn btn-primary"} style={{marginRight:"5px"}} onClick={()=>this.updateSpreadsheet(this.state.chosenTable.id)}>Обновить конкурсные списки</Button>*/}
-                {/*        /!*<Button className={"btn btn-primary"} style={{marginRight:"5px"}}>Сократить названия</Button>*!/*/}
-                {/*        /!*<Button className={"btn btn-primary"}>Управление доступом</Button>*!/*/}
-                {/*    </div>*/}
-                {/*</Modal>*/}
                 <div className={"btn-group"}>
                     <Button className={"btn btn-primary"}
                             disabled={this.state.previousButtonDisable}
                             onClick={() => this.previousButtonClick()}
-                            style={{marginBottom:"25px"}}>
+                            style={{marginBottom: "25px"}}>
                         Предыдущая страница
                     </Button>
                     <Button className={"btn btn-primary"}
                             disabled={this.state.nextButtonDisable}
                             onClick={() => this.nextButtonClick()}
-                            style={{marginLeft: "232%", marginBottom:"25px"}}>
+                            style={{marginLeft: "232%", marginBottom: "25px"}}>
                         Следующая страница
                     </Button>
                 </div>
@@ -350,7 +345,7 @@ export class Home extends Component {
         );
     }
 
-     async createSpreadsheets() {
+    async createSpreadsheets() {
         let directionIds = [];
         let checkBoxes = document.querySelectorAll('input[name="directions"]:checked');
         checkBoxes.forEach((checkBox) => {
@@ -362,85 +357,106 @@ export class Home extends Component {
         data.directionIds = directionIds;
         data.stage = document.getElementById("stage").value;
         data.possibleDirections = document.getElementById("countPossibleDirections").value;
-        if(data.tableName == null || data.tableName === "")
-        {
+        if (data.tableName == null || data.tableName === "") {
             alert("Название таблицы не заполнено");
             return;
         }
-        if(directionIds.length === 0)
-        {
+        if (directionIds.length === 0) {
             alert("Не выбраны направления");
             return;
         }
         let responseStatus;
-        await fetch("https://localhost:5001/spreadsheets/create",{
-            method:'POST', 
+        await fetch("http://localhost:80/spreadsheets/create", {
+            method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)})
+            body: JSON.stringify(data)
+        })
             .then(
-            function(response) {
-                responseStatus = response.status;
-            });
-        if(responseStatus === 200)
+                function (response) {
+                    responseStatus = response.status;
+                });
+        if (responseStatus === 200)
             alert("Таблица успешно создана");
-        else    
+        else
             alert("Таблица не создалась!");
     }
-    
-    async updateSpreadsheet(spreadsheetId){
+
+    async updateSpreadsheet(spreadsheetId) {
         let responseStatus;
         let responseText;
-        let url = "https://localhost:5001/spreadsheets/highlight-originals?spreadsheetId="+spreadsheetId;
-        await fetch(url,{
-            method:'POST'})
+        let url = "http://localhost:80/spreadsheets/highlight-originals?spreadsheetId=" + spreadsheetId;
+        await fetch(url, {
+            method: 'POST'
+        })
             .then(
-                await function(response) {
+                await function (response) {
                     responseStatus = response.status;
                     responseText = response.text().then(function (text) {
                         return text;
                     });
                 });
         await responseText.then((text) => responseText = text);
-        if(responseStatus === 200){
-            if(responseText === "Wait")
-                alert("Обновляется другая таблица, пожалуйста подождите!");   
+        if (responseStatus === 200) {
+            if (responseText === "Wait")
+                alert("Обновляется другая таблица, пожалуйста подождите!");
             else
                 alert("Таблица успешно обновлена");
-        }
-        else
+        } else
             alert("Таблица не обновилась!");
     }
-    
+
+    async reduceDirections(spreadsheetId) {
+        let responseStatus;
+        let responseText;
+        let url = "http://localhost:80/spreadsheets/reduce-directions?spreadsheetId=" + spreadsheetId;
+        await fetch(url, {
+            method: 'POST'
+        })
+            .then(
+                await function (response) {
+                    responseStatus = response.status;
+                    responseText = response.text().then(function (text) {
+                        return text;
+                    });
+                });
+        await responseText.then((text) => responseText = text);
+        if (responseStatus === 200) {
+            alert("Направления сокращены");
+        } else
+            alert("Что то пошло не так!");
+    }
+
     getFiles(next, previous) {
         console.log("GET");
+        console.log(this.isAuthenticated());
         if (this.isAuthenticated()) {
             let xhr = new XMLHttpRequest();
             let url;
-            if(next){
-                url = "https://localhost:5001/drive/search?next=true";
-            }
-            else if(previous){
-                url = "https://localhost:5001/drive/search?previous=true";
-            }
-            else {
-                url = "https://localhost:5001/drive/search";
+            if (next) {
+                url = "http://localhost:80/drive/search?next=true";
+            } else if (previous) {
+                url = "http://localhost:80/drive/search?previous=true";
+            } else {
+                url = "http://localhost:80/drive/search";
             }
             xhr.open('GET', url, false);
             xhr.send();
-            return JSON.parse(xhr.responseText);
+            let response = JSON.parse(xhr.responseText);
+            console.log(response);
+            return response;
         }
     }
 
     isAuthenticated() {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', "https://localhost:5001/user/is-authenticated", false);
+        xhr.open('GET', "http://localhost:80/user/is-authenticated", false);
         xhr.send();
         return xhr.responseText !== "not authenticated";
     }
 
     getData() {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', "https://localhost:5001/spreadsheets/getData", false);
+        xhr.open('GET', "http://localhost:80/spreadsheets/getData", false);
         xhr.send();
         return JSON.parse(xhr.responseText);
     }

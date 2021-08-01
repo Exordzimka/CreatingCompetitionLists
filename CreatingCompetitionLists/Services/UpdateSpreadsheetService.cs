@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using CreatingCompetitionLists.Models;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
@@ -23,7 +25,7 @@ namespace CreatingCompetitionLists.Services
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         private static bool canUpdate = true;
 
-        int startRow = 17;
+        int startRow = 8;
         int startCountColumns = 12;
 
         private static readonly Border simpleBorder = new Border
@@ -148,7 +150,70 @@ namespace CreatingCompetitionLists.Services
             {
                 canUpdate = true;
             }
-            
+        }
+
+        public string directionReduct(string spreadsheetId, ClaimsPrincipal user)
+        {
+            try
+            {
+                var spreadsheet = Service(user).Spreadsheets.Get(spreadsheetId).Execute();
+                var batchValueGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
+                batchValueGet.ValueRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
+                    .ValueRenderOptionEnum
+                    .UNFORMATTEDVALUE;
+                batchValueGet.Ranges = new Repeatable<string>(new[] {"БАЗА!G2:Q"});
+                var values = batchValueGet.Execute().ValueRanges[0].Values;
+                using var db = new competition_listContext();
+                var directionTitleShortTitleDictionary =
+                    db.Directions.ToDictionary(direction => direction.Title, direction => direction.ShortTitle);
+                var updatedRows = new List<RowData>();
+                foreach (var t in values)
+                {
+                    updatedRows.Add(new RowData {Values = new List<CellData>()});
+                    for (var j = 0; j < t.Count; j++)
+                    {
+                        updatedRows.Last().Values.Add(new CellData
+                            {UserEnteredValue = new ExtendedValue {StringValue = t[j].ToString()}});
+                        var last = updatedRows.Last().Values.Last().UserEnteredValue;
+                        foreach (var (key, value) in directionTitleShortTitleDictionary.Where(directionPair =>
+                            last.StringValue.Contains(directionPair.Key)))
+                        {
+                            var regex = new Regex(key, RegexOptions.IgnoreCase);
+                            last.StringValue = regex.Replace(last.StringValue, value);
+                        }
+                    }
+                }
+
+                var updateRequest = new Request
+                {
+                    UpdateCells = new UpdateCellsRequest
+                    {
+                        Range = new GridRange
+                        {
+                            SheetId = spreadsheet.Sheets
+                                .FirstOrDefault(x =>
+                                    x.Properties.Title.Equals("база", StringComparison.OrdinalIgnoreCase))
+                                ?.Properties.SheetId,
+                            StartColumnIndex = GetNumberByLetter("G"),
+                            StartRowIndex = 1,
+                            EndColumnIndex = GetNumberByLetter("Q") + 1,
+                        },
+                        Rows = updatedRows,
+                        Fields = "UserEnteredValue"
+                    }
+                };
+                var bussr = new BatchUpdateSpreadsheetRequest
+                {
+                    Requests = new List<Request> {updateRequest}
+                };
+                var bur = Service(user).Spreadsheets.BatchUpdate(bussr, spreadsheet.SpreadsheetId);
+                bur.Execute();
+                return "ok";
+            }
+            catch (Exception e)
+            {
+                return "error";
+            }
         }
 
         private async void updateSheet(Sheet sheet, SpreadsheetsResource.ValuesResource.BatchGetRequest batchFormulaGet,
@@ -157,11 +222,11 @@ namespace CreatingCompetitionLists.Services
         {
             if (sheet.Properties.Title.Equals("База", StringComparison.OrdinalIgnoreCase) ||
                 sheet.Properties.Title.Equals("Число мест", StringComparison.OrdinalIgnoreCase)) return;
-            batchFormulaGet.Ranges = new Repeatable<string>(new[] {sheet.Properties.Title + "!A16:Z16"});
+            batchFormulaGet.Ranges = new Repeatable<string>(new[] {sheet.Properties.Title + "!A7:Z7"});
             IList<IList<object>> headValues;
             try
             {
-                headValues = batchFormulaGet.Execute().ValueRanges[0].Values;   
+                headValues = batchFormulaGet.Execute().ValueRanges[0].Values;
             }
             catch (Exception e)
             {
@@ -170,10 +235,10 @@ namespace CreatingCompetitionLists.Services
 
             var countOfDirection = getCountDirections(headValues[0]);
             batchFormulaGet.Ranges = new Repeatable<string>(new[]
-                {sheet.Properties.Title + $"!A17:{GetLetterByNumber(startCountColumns + countOfDirection)}"});
+                {sheet.Properties.Title + $"!A8:{GetLetterByNumber(startCountColumns + countOfDirection)}"});
             var formulaValues = batchFormulaGet.Execute().ValueRanges[0].Values;
             batchValueGet.Ranges = new Repeatable<string>(new[]
-                {sheet.Properties.Title + $"!A17:{GetLetterByNumber(startCountColumns + countOfDirection)}"});
+                {sheet.Properties.Title + $"!A8:{GetLetterByNumber(startCountColumns + countOfDirection)}"});
             var valueValues = batchValueGet.Execute().ValueRanges[0].Values;
             batchValueGet.Ranges = new Repeatable<string>(new[] {"ЧИСЛО МЕСТ!A1:F" + countOfDirection + 1});
 
@@ -258,9 +323,9 @@ namespace CreatingCompetitionLists.Services
                 }
                 else if (valueValues[i][GetNumberByLetter(documentColumn)].ToString()
                              .Contains("оригинал", StringComparison.OrdinalIgnoreCase) &&
-                         valueValues[i][GetNumberByLetter(predictionColumn)].ToString() == "" ||
-                         valueValues[i][GetNumberByLetter(predictionColumn)].ToString()
-                             .Contains("да", StringComparison.OrdinalIgnoreCase))
+                         (valueValues[i][GetNumberByLetter(predictionColumn)].ToString() == "" ||
+                          valueValues[i][GetNumberByLetter(predictionColumn)].ToString()
+                              .Contains("да", StringComparison.OrdinalIgnoreCase)))
                 {
                     for (int k = 0; k <= GetNumberByLetter(agreementColumn); k++)
                     {
@@ -275,9 +340,10 @@ namespace CreatingCompetitionLists.Services
                 }
 
                 if (valueValues[i][GetNumberByLetter(agreementColumn)].ToString() != "" &&
-                    valueValues[i][GetNumberByLetter(predictionColumn)].ToString() == "" ||
-                    valueValues[i][GetNumberByLetter(predictionColumn)].ToString()
-                        .Contains("да", StringComparison.OrdinalIgnoreCase) &&
+                    (valueValues[i][GetNumberByLetter(predictionColumn)].ToString() == "" ||
+                     valueValues[i][GetNumberByLetter(predictionColumn)].ToString()
+                         .Contains("да", StringComparison.OrdinalIgnoreCase))
+                    &&
                     valueValues[i][GetNumberByLetter(enrolledOnColumn)].ToString() == "")
                 {
                     if (countOriginals != countPlaces)
@@ -300,10 +366,11 @@ namespace CreatingCompetitionLists.Services
                         }
 
                         await SetPassingScore(placesSheetValues, sheet.Properties.Title,
-                            spreadsheet.Sheets.FirstOrDefault(x => x.Properties.Title.Equals("Число мест", StringComparison.OrdinalIgnoreCase)),
+                            spreadsheet.Sheets.FirstOrDefault(x =>
+                                x.Properties.Title.Equals("Число мест", StringComparison.OrdinalIgnoreCase)),
                             int.Parse(valueValues[i][GetNumberByLetter(sumEgeColumn)].ToString()), user,
                             spreadsheet, secondWave);
-                        for (var k = 0; k < GetNumberByLetter(agreementColumn); k++)
+                        for (var k = 0; k <= GetNumberByLetter(agreementColumn); k++)
                         {
                             updatedRows[i].Values[k].UserEnteredFormat = yellowFormat;
                         }
@@ -321,7 +388,7 @@ namespace CreatingCompetitionLists.Services
                     {
                         SheetId = sheet.Properties.SheetId,
                         StartColumnIndex = 0,
-                        StartRowIndex = 16,
+                        StartRowIndex = 7,
                         EndColumnIndex = columnCount,
                     },
                     Rows = updatedRows,
@@ -404,9 +471,9 @@ namespace CreatingCompetitionLists.Services
             ClaimsPrincipal user, Spreadsheet spreadsheet, bool secondWave = false)
         {
             var firstColumnNumber = findColumnNumber(sheetValues, DateTime.Now.Year.ToString());
-            var secondColumnNumber = findColumnNumber(sheetValues, "Проходной балл");
+            var secondColumnNumber = findColumnNumber(sheetValues, "Проходной балл для 1 волны");
             var rowNumber = findRowNumber(sheetValues, firstColumnNumber, findValue);
-            var updatedRows = new List<RowData> {new RowData{Values = new List<CellData>()}};
+            var updatedRows = new List<RowData> {new RowData {Values = new List<CellData>()}};
             updatedRows[0].Values.Add(new CellData {UserEnteredValue = new ExtendedValue {NumberValue = passingScore}});
             var updateRequest = new Request
             {

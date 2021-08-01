@@ -26,7 +26,7 @@ export class NavMenu extends Component {
     }
 
     async checkAuthenticate() {
-        let response = await fetch("https://localhost:5001/user/is-authenticated");
+        let response = await fetch("http://localhost:80/user/is-authenticated");
         let isAuthenticated = await response.text();
         this.setState(
             {

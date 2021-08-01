@@ -103,15 +103,15 @@ export class Home extends Component {
 
     async checkSpreadSheets() {
         alert("asasa");
-        // let response = await fetch("https://localhost:5001/spreadsheets/fill");
-        let response = await fetch("https://localhost:5001/drive/search");
+        // let response = await fetch("http://localhost:80/spreadsheets/fill");
+        let response = await fetch("http://localhost:80/drive/search");
     }
 
     getSheets(tokenPage) {
         let result;
         if (tokenPage == null){
 
-            fetch("https://localhost:5001/drive/search").then(response =>{
+            fetch("http://localhost:80/drive/search").then(response =>{
                 response.json().then(body => {
                     console.log(body);
                     result = body;
@@ -120,7 +120,7 @@ export class Home extends Component {
             return result;
         }
 
-        fetch("https://localhost:5001/drive/search?token-page=" + tokenPage).then(response =>{
+        fetch("http://localhost:80/drive/search?token-page=" + tokenPage).then(response =>{
             response.json().then(body => {
                 console.log(body);
                 result = body;
@@ -133,9 +133,9 @@ export class Home extends Component {
         if(this.isAuthenticated()){
             let xhr = new XMLHttpRequest();
             if(tokenPage == null)
-                xhr.open('GET', "https://localhost:5001/drive/search", false);
+                xhr.open('GET', "http://localhost:80/drive/search", false);
             else
-                xhr.open('GET', "https://localhost:5001/drive/search?token-page=" + tokenPage, false);
+                xhr.open('GET', "http://localhost:80/drive/search?token-page=" + tokenPage, false);
             xhr.send();
             return JSON.parse(xhr.responseText);
         }
@@ -143,7 +143,7 @@ export class Home extends Component {
 
     isAuthenticated(){
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', "https://localhost:5001/user/is-authenticated", false);
+        xhr.open('GET', "http://localhost:80/user/is-authenticated", false);
         xhr.send();
         return xhr.responseText !== "not authenticated";
     }

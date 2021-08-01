@@ -1,8 +1,10 @@
 using CreatingCompetitionLists.Data;
+using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
@@ -31,22 +33,36 @@ namespace CreatingCompetitionLists
                 config.Filters.Add(new AuthorizeFilter(policy));
             });
 
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.Lax;
+            });
+
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/build"; });
-
+            services.AddDataProtection();
             services.AddAuthentication
                     (options => { options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; })
                 .AddCookie(options =>
                 {
+                    options.Cookie.IsEssential = true;
                     options.LoginPath = "/authentication/google-login";
                     options.LogoutPath = "/authentication/google-logout";
                 })
                 .AddGoogle(options =>
                 {
+                    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     var googleAuthSection = Configuration.GetSection("Authentication:Google");
                     options.ClientId = googleAuthSection["ClientId"];
                     options.ClientSecret = googleAuthSection["ClientSecret"];
                 });
+            
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithExposedHeaders());
+            });
+            services.AddMvc(o=>o.EnableEndpointRouting  = false);
 
             services.AddOptions();
             services.AddControllers()
@@ -68,15 +84,18 @@ namespace CreatingCompetitionLists
             {
                 app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                // app.UseHsts();
             }
             
-            app.UseHttpsRedirection();
+            app.UseCookiePolicy();
+            app.UseCors();
+            // app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            // app.UseSession();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

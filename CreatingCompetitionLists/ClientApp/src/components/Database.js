@@ -122,21 +122,21 @@ export class Database extends Component {
 
     getDirections() {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', "https://localhost:5001/database/get-directions", false);
+        xhr.open('GET', "http://localhost:80/database/get-directions", false);
         xhr.send();
         return JSON.parse(xhr.responseText);
     }
 
     getFaculties() {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', "https://localhost:5001/database/get-faculties", false);
+        xhr.open('GET', "http://localhost:80/database/get-faculties", false);
         xhr.send();
         return JSON.parse(xhr.responseText);
     }
 
     async handleAddFaculty() {
         let responseStatus;
-        await fetch("https://localhost:5001/database/add-faculty",{
+        await fetch("http://localhost:80/database/add-faculty",{
             method:'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(this.formFacultyForAddOrUpdate())})
@@ -158,7 +158,7 @@ export class Database extends Component {
 
     async handleUpdateFaculty() {
         let responseStatus;
-        await fetch("https://localhost:5001/database/update-faculty",{
+        await fetch("http://localhost:80/database/update-faculty",{
             method:'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(this.formFacultyForAddOrUpdate())})
@@ -180,7 +180,7 @@ export class Database extends Component {
 
     async handleDeleteFaculty() {
         let responseStatus;
-        await fetch("https://localhost:5001/database/delete-faculty",{
+        await fetch("http://localhost:80/database/delete-faculty",{
             method:'DELETE',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(this.state.facultyId)})
@@ -203,7 +203,7 @@ export class Database extends Component {
 
     async handleAddDirection() {
         let responseStatus;
-        await fetch("https://localhost:5001/database/add-direction",{
+        await fetch("http://localhost:80/database/add-direction",{
             method:'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(this.formDirectionForAddOrUpdate())})
@@ -225,7 +225,7 @@ export class Database extends Component {
 
     async handleUpdateDirection() {
         let responseStatus;
-        await fetch("https://localhost:5001/database/update-direction",{
+        await fetch("http://localhost:80/database/update-direction",{
             method:'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(this.formDirectionForAddOrUpdate())})
@@ -247,7 +247,7 @@ export class Database extends Component {
 
     async handleDeleteDirection() {
         let responseStatus;
-        await fetch("https://localhost:5001/database/delete-direction",{
+        await fetch("http://localhost:80/database/delete-direction",{
             method:'DELETE',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(this.state.directionId)})

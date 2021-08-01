@@ -40,7 +40,27 @@ namespace CreatingCompetitionLists.Controllers
         [Route("highlight-originals")]
         public string HighlightOriginals([FromQuery]string spreadsheetId)
         {
-            return _updateSpreadsheetService.HighlightOriginals(spreadsheetId, User);
+            try
+            {
+                return _updateSpreadsheetService.HighlightOriginals(spreadsheetId, User);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        
+        [Route("reduce-directions")]
+        public string ReduceDirections([FromQuery]string spreadsheetId)
+        {
+            try
+            {
+                return _updateSpreadsheetService.directionReduct(spreadsheetId, User);
+            }
+            catch(Exception e)
+            {
+                return e.ToString();
+            }
         }
     }
 }

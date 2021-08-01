@@ -33,9 +33,10 @@ namespace CreatingCompetitionLists.Services
         private string _enrolledOnColumn = "N";
         private string _commentColumn = "O";
         private string _phoneColumn = "P";
-        private int _headRow = 16;
-        private int _startRow = 17;
+        private int _headRow = 7;
+        private int _startRow = 2;
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private List<RowData> placesSheetRows;
 
         public void FillSpreadsheet(Spreadsheet spreadsheet,
             System.Security.Claims.ClaimsPrincipal user,
@@ -214,24 +215,25 @@ namespace CreatingCompetitionLists.Services
                         bur.Execute();
                         break;
                     case "ЧИСЛО МЕСТ":
-                        rows = new List<RowData>();
+                        placesSheetRows = new List<RowData>();
                         var placesColumns = new Dictionary<string, string>();
                         placesColumns.Add("A","КЦП");
                         placesColumns.Add("B",DateTime.Today.Year.ToString());
                         placesColumns.Add("C","Целевики");
                         placesColumns.Add("D","Особые права");
                         placesColumns.Add("E","Число мест на 1 волну");
-                        placesColumns.Add("F","Проходной балл");
+                        placesColumns.Add("F","Проходной балл для 1 волны");
                         if (countWave == 2)
                         {
                             placesColumns.Add("G","Число мест на 2 волну");
-                            placesColumns.Add("H","Проходной балл");   
+                            placesColumns.Add("H","Проходной балл для 2 волны");   
                         }
 
                         var placesHeadRow = new RowData{Values = new List<CellData>()};
                         placesColumns.Values.ToList().ForEach(x =>
                             placesHeadRow.Values.Add(new CellData {UserEnteredValue = new ExtendedValue {StringValue = x}}));
-                        rows.Add(placesHeadRow);
+                        placesSheetRows.Add(placesHeadRow);
+                        var i = 2;
                         foreach (var direction in directions)
                         {
                             using var db = new competition_listContext();
@@ -243,17 +245,18 @@ namespace CreatingCompetitionLists.Services
                             placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{NumberValue = 0}});
                             if (countWave == 1)
                             {
-                                placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = directionDb.CountForEnrollee.Value.ToString()}});
+                                placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = $"={directionDb.CountForEnrollee.Value}-${GetLetterByNumber(2)}{i}-${GetLetterByNumber(3)}{i}"}});
                                 placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = ""}});
                             }
                             else
                             {
-                                placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = (directionDb.CountForEnrollee.Value*0.8).ToString()}});
+                                placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = $"={directionDb.CountForEnrollee.Value*0.8}-${GetLetterByNumber(2)}{i}-${GetLetterByNumber(3)}{i}"}});
                                 placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = ""}});
-                                placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = (directionDb.CountForEnrollee.Value*0.2).ToString()}});
+                                placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = $"={directionDb.CountForEnrollee.Value*0.2}-${GetLetterByNumber(2)}{i}-${GetLetterByNumber(3)}{i}"}});
                                 placesRow.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = ""}});
                             }
-                            rows.Add(placesRow);
+                            placesSheetRows.Add(placesRow);
+                            i++;
                         }
                         updateRequest = new Request
                         {
@@ -267,7 +270,7 @@ namespace CreatingCompetitionLists.Services
                                     EndColumnIndex = placesColumns.Count,
                                     EndRowIndex = directions.Count+1
                                 },
-                                Rows = rows,
+                                Rows = placesSheetRows,
                                 Fields = "UserEnteredValue"
                             }
                         };
@@ -301,8 +304,8 @@ namespace CreatingCompetitionLists.Services
                         break;
                     default:
                         rows = new List<RowData>();
-                        rows.Add(headValues);
-                        SetFormulas(columns,sheet.Properties.Title, rows, baseHeadValues, countAppendRow);
+                        
+                        SetFormulas(columns,sheet.Properties.Title, rows, baseHeadValues, countAppendRow, headValues);
                         updateRequest = new Request
                         {
                             UpdateCells = new UpdateCellsRequest
@@ -311,9 +314,9 @@ namespace CreatingCompetitionLists.Services
                                 {
                                     SheetId = sheet.Properties.SheetId,
                                     StartColumnIndex = 0,
-                                    StartRowIndex = 15,
+                                    StartRowIndex = 0,
                                     EndColumnIndex = columns.Count,
-                                    EndRowIndex = countAppendRow
+                                    EndRowIndex = countAppendRow+1
                                 },
                                 Rows = rows,
                                 Fields = "UserEnteredValue"
@@ -327,9 +330,9 @@ namespace CreatingCompetitionLists.Services
                                 {
                                     SheetId = sheet.Properties.SheetId,
                                     StartColumnIndex = 0,
-                                    StartRowIndex = 15,
+                                    StartRowIndex = 6,
                                     EndColumnIndex = columns.Count,
-                                    EndRowIndex = countAppendRow
+                                    EndRowIndex = countAppendRow+1
                                 },
                                 Cell = new CellData
                                 {
@@ -366,10 +369,27 @@ namespace CreatingCompetitionLists.Services
             }
         }
         
-        private void SetFormulas(List<SpreadsheetColumn> columns, string sheetName, List<RowData> values, RowData baseHeadValues, int rowCount)
+        private void SetFormulas(List<SpreadsheetColumn> columns, string sheetName, List<RowData> values, RowData baseHeadValues, int rowCount, RowData headValues)
         {
             var lastColumn = GetLetterByNumber(baseHeadValues.Values.Count);
-            for (var i = 0; i < rowCount - 17; i++)
+            for (var i = 0; i < 6; i++)
+            {
+                values.Add(new RowData{Values = new List<CellData>()});    
+            }
+            values.Add(headValues);
+            using var db = new competition_listContext();
+            var direction =
+                db.Directions.FirstOrDefault(x => x.ShortTitle == sheetName);
+            var faculty = db.Faculties.FirstOrDefault(x => x.Id == direction.FacultyId);
+            values[0].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = direction.Title}});
+            values[1].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = faculty.Title}});
+            values[2].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = "Число бюджетных мест: " + direction.CountForEnrollee}});
+            var passingScore =
+                $"=ЕслиОшибка(ИНДЕКС('ЧИСЛО МЕСТ'!$A$2:$Z;ПОИСКПОЗ({sheetName};'ЧИСЛО МЕСТ'!$B$2:$B;0);ПОИСКПОЗ(\"Проходной балл для 1 волны\";'ЧИСЛО МЕСТ'!$A$1:$Z$1;0));\"\")";
+            values[3].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = "Текущий проходной балл: "}});
+            values[3].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = passingScore}});
+
+            for (var i = 6; i < rowCount; i++)
             {
                 values.Add(new RowData());
                 var last = values.Last();
