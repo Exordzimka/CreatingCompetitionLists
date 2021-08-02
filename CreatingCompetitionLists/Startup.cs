@@ -60,7 +60,7 @@ namespace CreatingCompetitionLists
             
             services.AddCors(options =>
             {
-                options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithExposedHeaders());
+                options.AddDefaultPolicy(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders());
             });
             services.AddMvc(o=>o.EnableEndpointRouting  = false);
 
@@ -86,9 +86,9 @@ namespace CreatingCompetitionLists
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 // app.UseHsts();
             }
-            
-            app.UseCookiePolicy();
             app.UseCors();
+            app.UseCookiePolicy();
+           
             // app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
@@ -112,6 +112,7 @@ namespace CreatingCompetitionLists
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
+            app.UseMvc();
         }
     }
 }

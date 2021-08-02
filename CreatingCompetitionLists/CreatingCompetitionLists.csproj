@@ -9,7 +9,7 @@
         <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
         <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
         <AspNetCoreModuleName>AspNetCoreModule</AspNetCoreModuleName>
-        <StartupObject>CreatingCompetitionLists.Program</StartupObject>
+        <StartupObject></StartupObject>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

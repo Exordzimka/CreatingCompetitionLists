@@ -55,13 +55,13 @@ const DialogActions = withStyles((theme) => ({
 
 export class Home extends Component {
     static displayName = Home.name;
-    
+
     constructor(props) {
         super(props);
         this.getFiles = this.getFiles.bind(this);
         this.reduceDirections = this.reduceDirections.bind(this);
         this.state = {
-            searchResponse: this.getFiles(null),
+            searchResponse: null,
             createVisible: false,
             dataForCreating: null,
             dropdownOpen: false,
@@ -69,14 +69,17 @@ export class Home extends Component {
             editVisible: false,
             chosenTable: null,
             previousButtonDisable: false,
-            nextButtonDisable: false
+            nextButtonDisable: false,
+            authenticated: false
         };
-        console.log(this.state.searchResponse);
+
         Modal.setAppElement(document.getElementById('main'));
     }
 
-    componentDidMount() {
-        this.setState({
+    async componentDidMount() {
+        await this.isAuthenticated();
+        await this.getFiles();
+        await this.setState({
             previousButtonDisable: this.state.searchResponse?.previousPageToken == null,
             nextButtonDisable: this.state.searchResponse?.nextPageToken == null,
         })
@@ -141,6 +144,7 @@ export class Home extends Component {
     }
 
     renderTables(searchResponse) {
+        console.log(searchResponse);
         if (searchResponse != null)
             return (
                 <tbody id={"tbody"}>
@@ -174,21 +178,20 @@ export class Home extends Component {
         )
     }
 
-    nextButtonClick() {
-        let response = this.getFiles(true, false);
-        this.setState({
-            searchResponse: response,
+    async nextButtonClick() {
+        await this.getFiles(true, false);
+        let response = this.state.searchResponse;
+        await this.setState({
             nextButtonDisable: response.nextPageToken == null,
             previousButtonDisable: response.previousPageToken == null,
         });
         console.log(this.state.searchResponse);
     }
 
-    previousButtonClick() {
-        let response = this.getFiles(false, true);
-        console.log(this.state.searchResponse);
-        this.setState({
-            searchResponse: response,
+    async previousButtonClick() {
+        await this.getFiles(false, true);
+        let response = this.state.searchResponse;
+        await this.setState({
             nextButtonDisable: response.nextPageToken == null,
             previousButtonDisable: response.previousPageToken == null,
         });
@@ -231,7 +234,7 @@ export class Home extends Component {
     }
 
     render() {
-        let content = this.renderTables(this.state.searchResponse);
+        // let content = this.renderTables(this.state.searchResponse);
         let options = this.getOptions();
 
         return (
@@ -324,7 +327,7 @@ export class Home extends Component {
                         </th>
                     </tr>
                     </thead>
-                    {content}
+                    {this.renderTables(this.state.searchResponse)}
                 </Table>
                 {this.updateDialog()}
                 <div className={"btn-group"}>
@@ -426,10 +429,9 @@ export class Home extends Component {
             alert("Что то пошло не так!");
     }
 
-    getFiles(next, previous) {
+    async getFiles(next, previous) {
         console.log("GET");
-        console.log(this.isAuthenticated());
-        if (this.isAuthenticated()) {
+        if (this.state.authenticated) {
             let xhr = new XMLHttpRequest();
             let url;
             if (next) {
@@ -439,19 +441,23 @@ export class Home extends Component {
             } else {
                 url = "http://localhost:80/drive/search";
             }
-            xhr.open('GET', url, false);
-            xhr.send();
-            let response = JSON.parse(xhr.responseText);
-            console.log(response);
-            return response;
+            let response = await fetch(url);
+            // console.log(await response.json());
+            // let response1 = await JSON.parse(response.responseText);
+            // console.log("RESPONSE "+response1);
+            let responseJson = await response.json();
+            this.setState({
+                searchResponse: responseJson
+            });
         }
     }
 
-    isAuthenticated() {
-        let xhr = new XMLHttpRequest();
-        xhr.open('GET', "http://localhost:80/user/is-authenticated", false);
-        xhr.send();
-        return xhr.responseText !== "not authenticated";
+    async isAuthenticated() {
+        let response = await fetch("http://localhost:80/user/is-authenticated");
+        let isAuthenticated = await response.text();
+        await this.setState({
+            authenticated: isAuthenticated.responseText !== "not authenticated"
+        });
     }
 
     getData() {

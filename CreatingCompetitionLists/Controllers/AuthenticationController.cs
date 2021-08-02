@@ -26,7 +26,9 @@ namespace CreatingCompetitionLists.Controllers
         [Route("google-logout")]
         public IActionResult GoogleLogout()
         {
-            return Redirect(User.Identity.IsAuthenticated == false ? "/" : "google-signout");
+            var properties = new AuthenticationProperties {RedirectUri = Url.Action("GoogleSignout")};
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+            // return Redirect(User.Identity.IsAuthenticated == false ? "/" : "google-signout");
         }
 
         [Route("google-signin")]

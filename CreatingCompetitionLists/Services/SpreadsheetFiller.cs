@@ -21,7 +21,6 @@ namespace CreatingCompetitionLists.Services
         
         private string _numberColumn = "B";
         private string _fullNameColumn = "C";
-        private string _snilsColumn = "D";
         private string _preferentialColumn = "E";
         private string _sumEgeColumn = "F";
         private string _documentColumn = "G";
@@ -484,7 +483,7 @@ namespace CreatingCompetitionLists.Services
         private string DirectionFormula(string lastColumn, string sheetName, string directionColumn, int row)
         {
             return
-                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({directionColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=\"{sheetName}\";\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({directionColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\"))";
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({directionColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=\"{sheetName}\";\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({directionColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\"))";
         }
 
         private string DocumentFormula(string sheetName, string lastColumn,  int row)
@@ -501,37 +500,37 @@ namespace CreatingCompetitionLists.Services
         private string OriginalFormula(int row, string lastColumn)
         {
             return
-                $"=ArrayFormula(ЕСЛИ({_enrolledOnColumn}{row}<>\"\";\"\";ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_originalColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_originalColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\")))";
+                $"=ArrayFormula(ЕСЛИ({_enrolledOnColumn}{row}<>\"\";\"\";ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_originalColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_originalColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\")))";
         }
 
         private string PredictionFormula(int row, string lastColumn)
         {
             return
-                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);1)=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);1));\"\"))";
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);1)=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);1));\"\"))";
         }
 
         private string EnrolledOnFormula(int row, string lastColumn)
         {
             return
-                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_enrolledOnColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_enrolledOnColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\"))";
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_enrolledOnColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_enrolledOnColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\"))";
         }
 
         private string CommentFormula(int row, string lastColumn)
         {
             return
-                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_commentColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_commentColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\"))";
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_commentColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_commentColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0)));\"\"))";
         }
 
         private string FioFormula(int row, string lastColumn)
         {
             return
-                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_fullNameColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_fullNameColumn}${_headRow};БАЗА!$A$1:${lastColumn}$1;0)));\"\"))";
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_fullNameColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_fullNameColumn}${_headRow};БАЗА!$A$1:${lastColumn}$1;0)));\"\"))";
         }
 
         private string PhoneFormula(int row, string lastColumn)
         {
             return
-                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_phoneColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_snilsColumn}{row};'БАЗА'!$F$2:$F;0);ПОИСКПОЗ({_phoneColumn}${_headRow};БАЗА!$A$1:${lastColumn}$1;0)));\"\"))";
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_phoneColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_phoneColumn}${_headRow};БАЗА!$A$1:${lastColumn}$1;0)));\"\"))";
         }
 
         private string EnrolledOnBaseFormula(int row)

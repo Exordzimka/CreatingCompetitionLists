@@ -10,13 +10,14 @@ export class NavMenu extends Component {
         super(props);
 
         this.toggleNavbar = this.toggleNavbar.bind(this);
+        this.checkAuthenticate();
         this.state = {
             collapsed: true,
         };
     }
 
     componentDidMount() {
-        this.checkAuthenticate();
+        // this.checkAuthenticate();
     }
 
     toggleNavbar() {
@@ -28,6 +29,7 @@ export class NavMenu extends Component {
     async checkAuthenticate() {
         let response = await fetch("http://localhost:80/user/is-authenticated");
         let isAuthenticated = await response.text();
+        console.log("IS AUTH" + isAuthenticated);
         this.setState(
             {
                 authenticated: isAuthenticated
