@@ -21,17 +21,17 @@ namespace CreatingCompetitionLists.Services
         
         private string _numberColumn = "B";
         private string _fullNameColumn = "C";
-        private string _preferentialColumn = "E";
-        private string _sumEgeColumn = "F";
-        private string _documentColumn = "G";
-        private string _agreementColumn = "H";
-        private string _startDirectionColumn = "I";
-        private string _originalColumn = "L";
+        private string _preferentialColumn = "D";
+        private string _sumEgeColumn = "E";
+        private string _documentColumn = "F";
+        private string _agreementColumn = "G";
+        private string _startDirectionColumn = "H";
+        private string _originalColumn = "Q";
         private string _baseOriginalColumn = "";
-        private string _predictionColumn = "M";
-        private string _enrolledOnColumn = "N";
-        private string _commentColumn = "O";
-        private string _phoneColumn = "P";
+        private string _predictionColumn = "R";
+        private string _enrolledOnColumn = "S";
+        private string _commentColumn = "T";
+        private string _phoneColumn = "U";
         private int _headRow = 7;
         private int _startRow = 2;
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -43,7 +43,7 @@ namespace CreatingCompetitionLists.Services
         {
             var columnAfterDirection = GetNumberByLetter(_startDirectionColumn) + directions.Count;
             _baseOriginalColumn = GetLetterByNumber(7 + directions.Count);
-            _originalColumn = GetLetterByNumber(columnAfterDirection);
+            _originalColumn = GetLetterByNumber(columnAfterDirection+1);
             _predictionColumn = GetLetterByNumber(GetNumberByLetter(_originalColumn) + 1);
             _enrolledOnColumn = GetLetterByNumber(GetNumberByLetter(_predictionColumn) + 1);
             _commentColumn = GetLetterByNumber(GetNumberByLetter(_enrolledOnColumn) + 1);
@@ -51,10 +51,10 @@ namespace CreatingCompetitionLists.Services
             var spreadsheetId = spreadsheet.SpreadsheetId;
             var startValues = new List<object>
             {
-                "", "№", "ФИО", "СНИЛС", "Преимущ. право", "Сумма баллов", "Вид документа об образовании",
+                "", "№", "ФИО", "Преимущ. право", "Сумма баллов", "Вид документа об образовании",
                 "Согласие на зачисление"
             };
-            for (int i = 1; i <= directions.Count; i++)
+            for (int i = 1; i <= directions.Count+1; i++)
             {
                 startValues.Add("Н_" + i);
             }
@@ -66,7 +66,7 @@ namespace CreatingCompetitionLists.Services
             startValues.Add("Телефон");
             var baseValues = new List<object>
             {
-                "Прогноз (зачислен (Ц, ОП, 1 волна), ДА, НЕТ)", "Комментарий", "ЕГЭ", "Номер", "ФИО", "СНИЛС"
+                "Прогноз (зачислен (Ц, ОП, 1 волна), ДА, НЕТ)", "Комментарий", "ЕГЭ", "Номер", "ФИО"
             };
             for (var i = 1; i <= possibleDirections; i++)
             {
@@ -331,7 +331,7 @@ namespace CreatingCompetitionLists.Services
                                     StartColumnIndex = 0,
                                     StartRowIndex = 6,
                                     EndColumnIndex = columns.Count,
-                                    EndRowIndex = countAppendRow+1
+                                    EndRowIndex = countAppendRow
                                 },
                                 Cell = new CellData
                                 {
@@ -382,9 +382,10 @@ namespace CreatingCompetitionLists.Services
             var faculty = db.Faculties.FirstOrDefault(x => x.Id == direction.FacultyId);
             values[0].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = direction.Title}});
             values[1].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = faculty.Title}});
-            values[2].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = "Число бюджетных мест: " + direction.CountForEnrollee}});
+            values[2].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = "Число бюджетных мест: "}});
+            values[2].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{NumberValue = direction.CountForEnrollee}});
             var passingScore =
-                $"=ЕслиОшибка(ИНДЕКС('ЧИСЛО МЕСТ'!$A$2:$Z;ПОИСКПОЗ({sheetName};'ЧИСЛО МЕСТ'!$B$2:$B;0);ПОИСКПОЗ(\"Проходной балл для 1 волны\";'ЧИСЛО МЕСТ'!$A$1:$Z$1;0));\"\")";
+                $"=ЕслиОшибка(ИНДЕКС('ЧИСЛО МЕСТ'!$A$2:$Z;ПОИСКПОЗ(\"{sheetName}\";'ЧИСЛО МЕСТ'!$B$2:$B;0);ПОИСКПОЗ(\"Проходной балл для 1 волны\";'ЧИСЛО МЕСТ'!$A$1:$Z$1;0));\"\")";
             values[3].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{StringValue = "Текущий проходной балл: "}});
             values[3].Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = passingScore}});
 
@@ -418,9 +419,6 @@ namespace CreatingCompetitionLists.Services
                             break;
                         case "Телефон":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = PhoneFormula(row, lastColumn)}});
-                            break;
-                        case "ФИО":
-                            last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = FioFormula(row, lastColumn)}});
                             break;
                         default:
                             last.Values.Add(column.HeadName.Contains("Н_")
