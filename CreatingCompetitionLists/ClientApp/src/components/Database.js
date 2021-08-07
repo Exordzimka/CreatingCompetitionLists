@@ -92,7 +92,7 @@ export class Database extends Component {
         let data = {};
         data.id = this.state.directionId;
         data.title = this.state.directionTitle;
-        data.shortTitle = this.state.directionTitle;
+        data.shortTitle = this.state.directionShortTitle;
         data.countForEnrollee = this.state.directionCountPlaces;
         data.facultyId = this.state.directionFacultyId;
         return data;
@@ -225,6 +225,7 @@ export class Database extends Component {
 
     async handleUpdateDirection() {
         let responseStatus;
+        console.log(this.formDirectionForAddOrUpdate());
         await fetch("http://localhost:80/database/update-direction",{
             method:'PUT',
             headers: {'Content-Type': 'application/json'},

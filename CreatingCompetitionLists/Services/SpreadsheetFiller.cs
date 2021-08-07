@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using CreatingCompetitionLists.Data;
 using CreatingCompetitionLists.Models;
@@ -11,7 +11,6 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Util.Store;
-using Google.Apis.Drive;
 
 namespace CreatingCompetitionLists.Services
 {
@@ -29,23 +28,25 @@ namespace CreatingCompetitionLists.Services
         private string _originalColumn = "Q";
         private string _baseOriginalColumn = "";
         private string _predictionColumn = "R";
-        private string _enrolledOnColumn = "S";
-        private string _commentColumn = "T";
-        private string _phoneColumn = "U";
+        private string _priorityColumn = "S";
+        private string _enrolledOnColumn = "T";
+        private string _commentColumn = "U";
+        private string _phoneColumn = "V";
         private int _headRow = 7;
         private int _startRow = 2;
         private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         private List<RowData> placesSheetRows;
 
         public void FillSpreadsheet(Spreadsheet spreadsheet,
-            System.Security.Claims.ClaimsPrincipal user,
+            ClaimsPrincipal user,
             List<string> directions, int countWave, int possibleDirections)
         {
             var columnAfterDirection = GetNumberByLetter(_startDirectionColumn) + directions.Count;
             _baseOriginalColumn = GetLetterByNumber(7 + directions.Count);
             _originalColumn = GetLetterByNumber(columnAfterDirection+1);
             _predictionColumn = GetLetterByNumber(GetNumberByLetter(_originalColumn) + 1);
-            _enrolledOnColumn = GetLetterByNumber(GetNumberByLetter(_predictionColumn) + 1);
+            _priorityColumn = GetLetterByNumber(GetNumberByLetter(_predictionColumn) + 1);
+            _enrolledOnColumn = GetLetterByNumber(GetNumberByLetter(_priorityColumn) + 1);
             _commentColumn = GetLetterByNumber(GetNumberByLetter(_enrolledOnColumn) + 1);
             _phoneColumn = GetLetterByNumber(GetNumberByLetter(_commentColumn) + 1);
             var spreadsheetId = spreadsheet.SpreadsheetId;
@@ -61,12 +62,13 @@ namespace CreatingCompetitionLists.Services
 
             startValues.Add("Оригинал");
             startValues.Add("Прогноз");
+            startValues.Add("1-й приоритет");
             startValues.Add("Зачислен НА");
             startValues.Add("Комментарий");
             startValues.Add("Телефон");
             var baseValues = new List<object>
             {
-                "Прогноз (зачислен (Ц, ОП, 1 волна), ДА, НЕТ)", "Комментарий", "ЕГЭ", "Номер", "ФИО"
+                "Прогноз (зачислен (Ц, ОП, 1 волна), ДА, НЕТ)", "1-й приоритет", "Комментарий", "ЕГЭ", "Номер", "ФИО"
             };
             for (var i = 1; i <= possibleDirections; i++)
             {
@@ -397,27 +399,30 @@ namespace CreatingCompetitionLists.Services
                 foreach (var column in columns)
                 {
                     var row = i + _startRow;
-                    switch (column.HeadName)
+                    switch (column.HeadName.ToLower())
                     {
-                        case "Вид документа об образовании":
+                        case "вид документа об образовании":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = DocumentFormula(sheetName, lastColumn, row)}});
                             break;
-                        case "Согласие на зачисление":
+                        case "согласие на зачисление":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = AgreementFormula(row)}});
                             break;
-                        case "Оригинал":
+                        case "оригинал":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = OriginalFormula(row, lastColumn)}});
                             break;
-                        case "Прогноз":
+                        case "прогноз":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = PredictionFormula(row, lastColumn)}});
                             break;
-                        case "Зачислен НА":
+                        case "1-й приоритет":
+                            last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = PriorityFormula(row, lastColumn)}});
+                            break;
+                        case "зачислен НА":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = EnrolledOnFormula(row, lastColumn)}});
                             break;
-                        case "Комментарий":
+                        case "комментарий":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = CommentFormula(row, lastColumn)}});
                             break;
-                        case "Телефон":
+                        case "телефон":
                             last.Values.Add(new CellData{UserEnteredValue = new ExtendedValue{FormulaValue = PhoneFormula(row, lastColumn)}});
                             break;
                         default:
@@ -436,7 +441,7 @@ namespace CreatingCompetitionLists.Services
         
         private readonly string[] _scopes = {SheetsService.Scope.Drive, SheetsService.Scope.DriveFile};
 
-        private SheetsService Service(System.Security.Claims.ClaimsPrincipal user)
+        private SheetsService Service(ClaimsPrincipal user)
         {
             var userMail = user.Claims.FirstOrDefault(claim => claim.Value.Contains("@"))?.Value ?? "user";
             using (var stream =
@@ -505,6 +510,13 @@ namespace CreatingCompetitionLists.Services
         {
             return
                 $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);1)=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);1));\"\"))";
+        }
+
+        private string PriorityFormula(int row, string lastColumn)
+        {
+            return
+                $"=ArrayFormula(ЕСЛИОШИБКА(ЕСЛИ(ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_priorityColumn}${_headRow};'БАЗА'!$A$1:${lastColumn}$1;0))=0;\"\";ИНДЕКС('БАЗА'!$A$2:${lastColumn};ПОИСКПОЗ(${_fullNameColumn}{row};'БАЗА'!$E$2:$E;0);ПОИСКПОЗ({_priorityColumn}${_headRow};БАЗА!$A$1:${lastColumn}$1;0)));\"\"))";
+            
         }
 
         private string EnrolledOnFormula(int row, string lastColumn)

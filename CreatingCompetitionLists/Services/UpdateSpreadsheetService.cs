@@ -14,7 +14,6 @@ using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Util;
 using Google.Apis.Util.Store;
 using systemColor = System.Drawing.Color;
-using Color = Google.Apis.Sheets.v4.Data.Color;
 
 namespace CreatingCompetitionLists.Services
 {
@@ -123,15 +122,13 @@ namespace CreatingCompetitionLists.Services
                 canUpdate = false;
                 var spreadsheet = Service(user).Spreadsheets.Get(spreadsheetId).Execute();
                 var batchFormulaGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
-                batchFormulaGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
-                    .DateTimeRenderOptionEnum.FORMATTEDSTRING;
+                batchFormulaGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest.DateTimeRenderOptionEnum.FORMATTEDSTRING;
                 batchFormulaGet.ValueRenderOption =
                     SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.FORMULA;
                 batchFormulaGet.MajorDimension =
                     SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
                 var batchValueGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
-                batchValueGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
-                    .DateTimeRenderOptionEnum.FORMATTEDSTRING;
+                batchValueGet.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest.DateTimeRenderOptionEnum.FORMATTEDSTRING;
                 batchValueGet.ValueRenderOption =
                     SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
                 batchValueGet.MajorDimension =
@@ -158,8 +155,7 @@ namespace CreatingCompetitionLists.Services
             {
                 var spreadsheet = Service(user).Spreadsheets.Get(spreadsheetId).Execute();
                 var batchValueGet = Service(user).Spreadsheets.Values.BatchGet(spreadsheetId);
-                batchValueGet.ValueRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest
-                    .ValueRenderOptionEnum
+                batchValueGet.ValueRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum
                     .UNFORMATTEDVALUE;
                 batchValueGet.Ranges = new Repeatable<string>(new[] {"БАЗА!G2:Q"});
                 var values = batchValueGet.Execute().ValueRanges[0].Values;
@@ -244,7 +240,7 @@ namespace CreatingCompetitionLists.Services
 
 
             var predictionColumn = GetLetterByNumber(GetNumberByLetter(agreementColumn) + countOfDirection + 2);
-            var enrolledOnColumn = GetLetterByNumber(GetNumberByLetter(agreementColumn) + countOfDirection + 3);
+            var enrolledOnColumn = GetLetterByNumber(GetNumberByLetter(agreementColumn) + countOfDirection + 4);
             var countOriginals = 1;
             var placesSheetValues = batchValueGet.Execute().ValueRanges[0].Values;
             var countPlaces = getCountPlaces(placesSheetValues, DateTime.Now.Year.ToString(),
