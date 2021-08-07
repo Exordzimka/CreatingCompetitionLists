@@ -11,10 +11,9 @@ namespace CreatingCompetitionLists.Models
         {
             Directions = new HashSet<Direction>();
         }
-
         public long Id { get; set; }
         public string Title { get; set; }
-
+        
         public virtual ICollection<Direction> Directions { get; set; }
     }
 }
