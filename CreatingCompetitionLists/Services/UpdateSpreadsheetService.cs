@@ -108,9 +108,9 @@ namespace CreatingCompetitionLists.Services
             Borders = borders
         };
 
-        string agreementColumn = "H";
-        string documentColumn = "G";
-        string sumEgeColumn = "F";
+        string agreementColumn = "G";
+        string documentColumn = "F";
+        string sumEgeColumn = "E";
 
 
         public string HighlightOriginals(string spreadsheetId, ClaimsPrincipal user)
@@ -361,11 +361,18 @@ namespace CreatingCompetitionLists.Services
                             }
                         }
 
-                        await SetPassingScore(placesSheetValues, sheet.Properties.Title,
-                            spreadsheet.Sheets.FirstOrDefault(x =>
-                                x.Properties.Title.Equals("Число мест", StringComparison.OrdinalIgnoreCase)),
-                            int.Parse(valueValues[i][GetNumberByLetter(sumEgeColumn)].ToString()), user,
-                            spreadsheet, secondWave);
+                        try
+                        {
+                            await SetPassingScore(placesSheetValues, sheet.Properties.Title,
+                                spreadsheet.Sheets.FirstOrDefault(x =>
+                                    x.Properties.Title.Equals("Число мест", StringComparison.OrdinalIgnoreCase)),
+                                int.Parse(valueValues[i][GetNumberByLetter(sumEgeColumn)].ToString()), user,
+                                spreadsheet, secondWave);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
                         for (var k = 0; k <= GetNumberByLetter(agreementColumn); k++)
                         {
                             updatedRows[i].Values[k].UserEnteredFormat = yellowFormat;
